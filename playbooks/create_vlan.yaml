@@ -1,0 +1,37 @@
+---
+- hosts: all
+  connection: netconf
+  gather_facts: no
+  vars:
+    #vlan_id: 998
+    #vlan_name: Ansible_VLAN
+    ansible_network_os: junos
+
+  tasks:
+    - name: Checking NETCONF connectivity
+      wait_for: 
+        host: "{{ inventory_hostname }}"
+        port: 22 
+        timeout: 5
+
+    - name: Get software and uptime information
+      junos_command:     
+        commands: 
+          - "show version"        
+          - "show system uptime"
+      register: junos_result
+
+    - name: Set routed VLAN interface (RVI) IPv4 address
+      junos_config:
+        lines:
+          - set vlans {{ vlan_name }} vlan-id {{ vlan_id }}
+        confirm: 5
+        confirm_commit: true
+
+    - name: show vlans
+      junipernetworks.junos.junos_command:
+        commands:
+          - show vlan
+      register: show_vlan
+
+    - debug: var=show_vlan.stdout_lines

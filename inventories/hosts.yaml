@@ -1,0 +1,27 @@
+all:
+  children:
+    core:
+      hosts:
+      - 192.168.123.51
+      - 192.168.123.52
+    dist:
+      hosts:
+      - 192.168.123.21
+      - 192.168.123.22
+      - 192.168.123.23
+      - 192.168.123.24
+    edge:
+      hosts:
+      - 192.168.123.71
+    spine:
+      hosts:
+      - 192.168.123.11
+      - 192.168.123.12
+    leaf:
+      hosts:
+      - 192.168.123.21
+  hosts:
+    - 192.168.123.71
+  vars:
+    ansible_password: '{{ lookup("env", "ANSIBLE_PASSWORD") }}'
+    ansible_user: '{{ lookup("env", "ANSIBLE_USER") }}'
