@@ -1,0 +1,25 @@
+system {
+    replace:
+    syslog { 
+        user * {
+            any emergency;
+        }
+{% for server in syslog_servers %}
+        host {{ server }} {
+            any info;
+            routing-instance mgmt_junos;
+        }
+{% endfor %}
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file re_filter {
+            firewall any;
+            archive size 1m files 2;
+        }
+    }
+}

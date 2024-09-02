@@ -26,7 +26,10 @@
         lines:
           - set vlans {{ vlan_name }} vlan-id {{ vlan_id }}
         confirm: 5
-        confirm_commit: true
+
+    - name: confirm previous commit
+      junos_config:
+        confirm_commit: yes
 
     - name: show vlans
       junipernetworks.junos.junos_command:
