@@ -4,7 +4,7 @@ system {
         user * {
             any emergency;
         }
-{% for server in syslog_servers %}
+{% for server in list_syslog_servers %}
         host {{ server }} {
             any info;
             routing-instance mgmt_junos;

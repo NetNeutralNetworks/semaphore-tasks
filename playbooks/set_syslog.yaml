@@ -7,6 +7,10 @@
     ansible_network_os: junos
 
   tasks:
+    - name: Create the list
+      set_fact: 
+        list_syslog_servers: "{{ syslog_servers.split(',') }}"
+
     - name: Checking NETCONF connectivity
       wait_for: 
         host: "{{ inventory_hostname }}"
