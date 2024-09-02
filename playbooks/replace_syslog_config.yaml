@@ -1,0 +1,30 @@
+---
+- hosts: all
+  connection: netconf
+  gather_facts: no
+  vars:
+    #syslog_servers: '192.168.0.11'
+    ansible_network_os: junos
+
+  tasks:
+    - name: Create the list
+      set_fact: 
+        list_syslog_servers: "{{ syslog_servers.split(',') }}"
+
+    - name: Checking NETCONF connectivity
+      wait_for: 
+        host: "{{ inventory_hostname }}"
+        port: 22 
+        timeout: 5
+
+    - name: "Load a configuration from a Jinja2 template and commit"
+      junos_config:
+        update: "replace"
+        src: "../templates/junos/syslog.j2"
+        src_format: "text"
+        confirm: 5
+      register: response
+
+    - name: confirm previous commit
+      junos_config:
+        confirm_commit: yes

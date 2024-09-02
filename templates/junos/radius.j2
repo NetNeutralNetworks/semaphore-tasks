@@ -1,0 +1,10 @@
+system {
+    radius-server {
+{% for server in list_radius_servers %}
+        {{ server }} {
+            routing-instance mgmt_junos;
+            secret "{{ radius_psk }}"; ## SECRET-DATA
+        }
+{% endfor %}
+    }
+}
