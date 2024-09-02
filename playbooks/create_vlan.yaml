@@ -14,13 +14,6 @@
         port: 22 
         timeout: 5
 
-    - name: Get software and uptime information
-      junos_command:     
-        commands: 
-          - "show version"        
-          - "show system uptime"
-      register: junos_result
-
     - name: Set routed VLAN interface (RVI) IPv4 address
       junos_config:
         lines:
