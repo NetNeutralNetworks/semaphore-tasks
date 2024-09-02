@@ -28,5 +28,3 @@
     - name: confirm previous commit
       junos_config:
         confirm_commit: yes
-
-    - debug: var=response
