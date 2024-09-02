@@ -1,0 +1,11 @@
+system {
+    login {
+        user {{ device_username }} {
+            class super-user;
+            authentication {
+                encrypted-password "{{ device_password | password_hash('sha512') }}";
+                no-public-keys;
+            }
+        }
+    }
+}
