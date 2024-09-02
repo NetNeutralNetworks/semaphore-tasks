@@ -1,0 +1,24 @@
+---
+- hosts: all
+  connection: netconf
+  gather_facts: no
+  vars:
+    #username: nc-admin
+    ansible_network_os: junos
+
+  tasks:
+    - name: Checking NETCONF connectivity
+      wait_for: 
+        host: "{{ inventory_hostname }}"
+        port: 22 
+        timeout: 5
+
+    - name: Set routed VLAN interface (RVI) IPv4 address
+      junos_config:
+        lines:
+          - delete system login user {{ device_username }}
+        confirm: 5
+
+    - name: confirm previous commit
+      junos_config:
+        confirm_commit: yes
