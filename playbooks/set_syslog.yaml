@@ -18,8 +18,8 @@
         update: "replace"
         src: "../templates/junos/syslog.j2"
         src_format: "text"
+        confirm: 5
       register: response
-      confirm: 5
 
     - name: confirm previous commit
       junos_config:
