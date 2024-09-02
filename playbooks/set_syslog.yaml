@@ -29,4 +29,4 @@
       junos_config:
         confirm_commit: yes
 
-    - debug: var=response.stdout_lines
+    - debug: var=response
