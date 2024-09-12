@@ -1,2 +1,2 @@
 # semaphore-tasks
-the repository contains only sempahore tasks
+the repository contains only sempahore tasks.
