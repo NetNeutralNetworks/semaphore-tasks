@@ -46,5 +46,6 @@ for nb_device in nb_devices:
         print(f"{host}: Config changed and saved")
         
     else:
-        print("No manufacturer set or device is not a switch")
+        if os.environ.get('DEBUG',False):
+            print(f"{nb_device.get('display')}: No manufacturer set or device is not a switch")
     
