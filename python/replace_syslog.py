@@ -14,13 +14,13 @@ for nb_device in nb_devices:
     if nb_device.get('device_type').get('manufacturer').get('slug') == 'hpe' and nb_device.get('device_role').get('slug') == 'switch':        
         from nc_mis.drivers.hp.procurve import PROCURVE
         try:
-            host = nb_device.get('primary_ip',{}).get('address').split('/')[0]
+            host = nb_device.get('primary_ip').get('address').split('/')[0]
             device = PROCURVE(ip=f"{os.environ.get('V6_PREFIX')}{host}",
                                 username=os.environ.get('device_username',''),
                                 password=os.environ.get('device_password','')
                                 )
         except:
-            print ("Management ip not specified in netbox")
+            print (f"{nb_device.get('display')},{nb_device.get('primary_ip')}: Management ip not specified in netbox")
             continue
         
 
