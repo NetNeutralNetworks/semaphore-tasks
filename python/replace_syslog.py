@@ -1,44 +1,50 @@
 import yaml
 import argparse
+import os
+from nc_mis.helpers.netbox import Netbox
+import ipaddress
 
-import sys
-print (sys.argv[1:]);
+netbox = Netbox()
+# get devices from netbox
+# f"https://{os.environ.get('NETBOX_HOST','')}/api/dcim/devices/?device_role=switch&manufacturer=hpe"
+#
+nb_devices = netbox.get_all_devices()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-H","--host", type=str, help="hostname or ip address")
-parser.add_argument("-V","--vendor", type=str, help="vendor name")
-parser.add_argument("-O","--os", type=str, help="operating system")
-parser.add_argument("-u","--username", type=str, help="username")
-parser.add_argument("-p","--password", type=str, help="password")
-parser.add_argument("-r","--replace", action="store_true")
-parser.add_argument("-s","--log_servers", type=str, help="comma seperated list of log servers")
-parser.add_argument("-e","--arguments", type=str, help="arguments suplied in the same style as ansible")
-args = parser.parse_args()
-
-if args.vendor == "hp" and args.os == "procurve":
-    from nc_mis.drivers.hp.procurve import PROCURVE 
-    device = PROCURVE(ip=args.host,
-                        username=args.username,
-                        password=args.password
-                        )
-
-    device_config = device.get_config()
-    
-    # prep commands
-    commands = []
-    if args.replace:
-        existing_lines = [f"no {line}" for line in device_config.split('\n') if 'logging' in line]
-        commands += [i for s in args.log_servers.split(',') for i in existing_lines if s not in i]
+for nb_device in nb_devices:
+    if nb_device.get('device_type').get('manufacturer').get('slug') == 'hpe' and nb_device.get('device_role').get('slug') == 'switch':        
+        from nc_mis.drivers.hp.procurve import PROCURVE
+        try:
+            host = nb_device.get('primary_ip',{}).get('address').split('/')[0]
+            device = PROCURVE(ip=f"{os.environ.get('V6_PREFIX')}{host}",
+                                username=os.environ.get('device_username',''),
+                                password=os.environ.get('device_password','')
+                                )
+        except:
+            print ("Management ip not specified in netbox")
+            continue
         
-    commands += [f"logging {s}"for s in args.log_servers.split(',')]
-    
-    # send commands to device
-    result = device.send_config(commands)
 
-    device.write_config()
-    
-    print("Config changed and saved")
-    
-else:
-    print("Vendor and OS are not specified")
+        device_config = device.get_config()
+        
+        # prep commands
+        commands = []
+        logservers = nb_device.get('config_context').get('logservers')
+        if os.environ.get('replace',False):
+            remove_lines = [f"no {line}" for server in logservers for line in device_config.split('\n') if 'logging' in line]
+            commands += [line for server in logservers for line in remove_lines if server not in line]
+            logservers = [server for server in logservers for line in remove_lines if server not in line]
+            
+        commands += [f"logging {s}"for s in logservers]
+        if not commands:
+            print(f"{host}: No changes needed")
+            continue
+        # send commands to device
+        result = device.send_config(commands)
+
+        device.write_config()
+        
+        print(f"{host}: Config changed and saved")
+        
+    else:
+        print("No manufacturer set or device is not a switch")
     

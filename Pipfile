@@ -10,6 +10,8 @@ passlib = "*"
 ansible-pylibssh = "*"
 netmiko = "*"
 ttp = "*"
+requests = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
