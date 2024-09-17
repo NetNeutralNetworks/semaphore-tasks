@@ -15,7 +15,7 @@ for nb_device in nb_devices:
         from nc_mis.drivers.hp.procurve import PROCURVE
         try:
             host = nb_device.get('primary_ip').get('address').split('/')[0]
-            device = PROCURVE(ip=f"{os.environ.get('V6_PREFIX')}{host}",
+            device = PROCURVE(ip=f"{os.environ.get('V6_PREFIX','')}{host}",
                                 username=os.environ.get('device_username',''),
                                 password=os.environ.get('device_password','')
                                 )
