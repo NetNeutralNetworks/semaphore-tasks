@@ -9,6 +9,7 @@ parser.add_argument("-u","--username", type=str, help="username")
 parser.add_argument("-p","--password", type=str, help="password")
 parser.add_argument("-r","--replace", action="store_true")
 parser.add_argument("-s","--log_servers", type=str, help="comma seperated list of log servers")
+parser.add_argument("-e","--arguments", type=str, help="arguments suplied in the same style as ansible")
 args = parser.parse_args()
 
 print(args)
