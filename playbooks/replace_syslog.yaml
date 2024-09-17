@@ -1,0 +1,20 @@
+---
+- hosts: all
+  connection: network_cli
+  gather_facts: no
+  vars:
+    #device_username: 'nc-admin'
+    #device_password: 'supersecret'
+    ansible_network_os: aruba
+
+  tasks:
+  - name: run show version on remote devices
+    aruba_command:
+      commands: show version
+    register: output
+
+  - debug: var=output.stdout_lines
+
+  - name: configure top level configuration
+    aruba_config:
+      src:

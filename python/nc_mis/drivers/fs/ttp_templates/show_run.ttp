@@ -1,0 +1,82 @@
+<group name='system'>
+
+   <group name='config' expand="">
+hostname {{ hostname | resuball('','"') | record("host")}}
+ip dns domain-name {{domain-name| resuball('','"')}}
+   </group>
+
+   <group name='ntp'>
+      <group name='config'>
+sntp {{enabled | re('enable') | let(True) | default(False)}}
+      </group>
+      <group name='servers'>
+sntp server {{address | _start_}}
+      </group>
+   </group>
+
+   <group name='dns'>
+      <group name='servers*'>
+         <group name='config'>
+ip name-server {{address}}
+         </group>
+      </group>
+   </group>
+
+   <group name='aaa'>
+      <group name='authentication'>
+      </group>
+      <group name='server-groups*'>
+         <group name='servers*' expand="">
+radius-server host {{ address | _start_}} key 7 {{ radius.config.secret-key | resuball('','"') }}
+radius-server host {{ address | _start_}} key {{ radius.config.secret-key | resuball('','"') }}
+radius-server host {{ address | _start_}}
+         </group>
+      </group>
+   </group>
+
+   <group name='logging.remote-servers*' expand="">
+logging server {{host}}
+   </group>
+
+   <group name='telnet-server'>
+      <group name='config'>
+no enable service telnet-server {{enable | set(False) | default(True)}}
+      </group>
+   </group>
+
+</group>
+
+<group name='vlans*' expand="">
+vlan {{ vlan-id }}
+ name {{config.name | ORPHRASE | resuball('','"')}}
+! {{_end_}}
+</group>
+
+<group name='interfaces*' expand="" >
+interface {{ name | re('.*Ethernet.*') | let('config.type', 'IF_ETHERNET')}}
+ description {{config.description | ORPHRASE | resuball('','"')}}
+ switchport access vlan {{switched-vlan.config.access-vlan | let("switched-vlan.config.interface-mode", "ACCESS")}}
+ switchport mode trunk {{let("switched-vlan.config.trunk-vlans", 'ALL') | | let("switched-vlan.config.interface-mode", "TRUNK")}}
+ exit {{_end_}}
+</group>
+
+<vars>
+# template variable with custom regular expression:
+RO_OR_RW = "ro|rw"
+</vars>
+
+<group name='snmp.communities.{{name}}*' expand="">
+snmp-server community 7 {{name | resuball('','"') | let('config.view', 'default') | let('config.access', 'default') | _start_}}
+snmp-server community 7 {{name | resuball('','"') | _start_}} {{config.access | re("RO_OR_RW") | let('config.view', 'default')}}
+</group>
+
+<group name='stp' expand=''>
+spanning-tree {{global.config.enabled | set(True)}}
+spanning-tree mst {{mstp.mst-instances.config.mst-id}} priority {{mstp.mst-instances.config.bridge-priority}}
+</group>
+
+<group name='snmp.contact' expand="">
+snmp-server contact "{{name | ORPHRASE | _start_}}" location "{{location | ORPHRASE}}"
+snmp-server location "{{location | ORPHRASE | _start_}}"
+snmp-server contact "{{name | ORPHRASE | _start_}}}}"
+</group>
