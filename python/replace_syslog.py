@@ -1,6 +1,9 @@
 import yaml
 import argparse
 
+import sys
+print (sys.argv[1:]);
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-H","--host", type=str, help="hostname or ip address")
 parser.add_argument("-V","--vendor", type=str, help="vendor name")
@@ -11,8 +14,6 @@ parser.add_argument("-r","--replace", action="store_true")
 parser.add_argument("-s","--log_servers", type=str, help="comma seperated list of log servers")
 parser.add_argument("-e","--arguments", type=str, help="arguments suplied in the same style as ansible")
 args = parser.parse_args()
-
-print(args)
 
 if args.vendor == "hp" and args.os == "procurve":
     from nc_mis.drivers.hp.procurve import PROCURVE 
