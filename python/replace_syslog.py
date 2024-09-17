@@ -11,6 +11,8 @@ parser.add_argument("-r","--replace", action="store_true")
 parser.add_argument("-s","--log_servers", type=str, help="comma seperated list of log servers")
 args = parser.parse_args()
 
+print(args)
+
 if args.vendor == "hp" and args.os == "procurve":
     from nc_mis.drivers.hp.procurve import PROCURVE 
     device = PROCURVE(ip=args.host,
