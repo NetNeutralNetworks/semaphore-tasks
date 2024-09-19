@@ -6,7 +6,7 @@ import urllib.parse
 from datetime import datetime
 
 import netmiko.hp
-from ttp import ttp
+#from ttp import ttp
 
 #from nc_mis import consts
 from nc_mis.drivers.abstract import Driver
