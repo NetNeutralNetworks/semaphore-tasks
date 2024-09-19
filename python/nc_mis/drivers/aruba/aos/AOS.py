@@ -8,15 +8,15 @@ from datetime import datetime
 import netmiko.hp
 from ttp import ttp
 
-from nc_mis import consts
+#from nc_mis import consts
 from nc_mis.drivers.abstract import Driver
 
 logger = logging.getLogger("nc-mis")
 
-SCRIPT_DIR = pathlib.Path(__file__).parent
-DATA_DIR = consts.DATA_DIR
-BACKUP_DIR = DATA_DIR.joinpath("backup")
-BACKUP_DIR.mkdir(exist_ok=True)
+# SCRIPT_DIR = pathlib.Path(__file__).parent
+# DATA_DIR = consts.DATA_DIR
+# BACKUP_DIR = DATA_DIR.joinpath("backup")
+# BACKUP_DIR.mkdir(exist_ok=True)
 
 
 class AOS(Driver):
