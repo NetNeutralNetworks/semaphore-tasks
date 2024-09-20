@@ -15,7 +15,7 @@ from nc_mis.drivers.fs.fs import FS
 import concurrent.futures
 import multiprocessing
 
-MAX_WORKERS = 1#os.environ.get('MAX_WORKERS',multiprocessing.cpu_count()*2)
+MAX_WORKERS = os.environ.get('MAX_WORKERS',multiprocessing.cpu_count()*2)
 print(f"Using {MAX_WORKERS} workers")
 
 def exec_pool(FUNCTION,LIST):
