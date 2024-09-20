@@ -3,15 +3,15 @@ import pathlib
 import typing
 
 import netmiko.cisco.cisco_ios
-from ttp import ttp
+# from ttp import ttp
 
-from nc_mis import consts
+#from nc_mis import consts
 from nc_mis.drivers.abstract import Driver
 
 SCRIPT_DIR = pathlib.Path(__file__).parent
-DATA_DIR = consts.DATA_DIR
-BACKUP_DIR = DATA_DIR.joinpath("backup")
-BACKUP_DIR.mkdir(exist_ok=True)
+# DATA_DIR = consts.DATA_DIR
+# BACKUP_DIR = DATA_DIR.joinpath("backup")
+# BACKUP_DIR.mkdir(exist_ok=True)
 
 
 class FS(Driver):
