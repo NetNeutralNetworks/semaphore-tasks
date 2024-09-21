@@ -82,7 +82,7 @@ def puch_change(lnms_device):
             
             if os.environ.get('replace',False):
                 # find all config lines that match "logging <ip>"
-                remove_lines = [f"no {line}" for server in logservers for line in device_config.split('\n') if re.match('^logging \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', line) != None ]
+                remove_lines = [f"no {line}" for line in device_config.split('\n') if re.match('^logging \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', line) != None ]
                 # drop removals that are planned for deployment
                 commands += [line for server in logservers for line in remove_lines if server not in line]
             
@@ -113,7 +113,7 @@ def puch_change(lnms_device):
             
             if os.environ.get('replace',False):
                 # find all config lines that match "logging <ip>"
-                remove_lines = [f"no {line}" for server in logservers for line in device_config.split('\n') if re.match('^logging \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', line) != None ]
+                remove_lines = [f"no {line}" for line in device_config.split('\n') if re.match('^logging \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', line) != None ]
                 # drop removals that are planned for deployment
                 commands += [line for server in logservers for line in remove_lines if server not in line]
             
@@ -144,7 +144,7 @@ def puch_change(lnms_device):
             
             if os.environ.get('replace',False):
                 # find all config lines that match "logging <ip>"
-                remove_lines = [f"no {line}" for server in logservers for line in device_config.split('\n') if re.match('^logging server \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', line) != None ]
+                remove_lines = [f"no {line}" for line in device_config.split('\n') if re.match('^logging server \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', line) != None ]
                 # drop removals that are planned for deployment
                 commands += [line for server in logservers for line in remove_lines if server not in line]
             
