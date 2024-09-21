@@ -197,7 +197,7 @@ netbox = Netbox()
 
 lnms_devices = librenms.get_all_devices()
 # filter only devices that are up 
-lnms_devices = [d for d in lnms_devices if d.get('status') == 1]
+#lnms_devices = [d for d in lnms_devices if d.get('status') == 1]
 lnms_devices_map = {d['sysName'].split('.')[0]:d for d in lnms_devices}
 #nb_devices = netbox.get_all_devices()
 nb_snmp_config = netbox._get_single("/api/extras/config-contexts/?name=snmp").get('results',[{}])[0].get('data',{}).get('snmp',[])
