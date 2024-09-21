@@ -167,13 +167,14 @@ def push_change(lnms_device):
             return { 'status': 'IGNORED', 'device': log_prefix }
     
         # finish up
-        device.conn.disconnect()
         if config_changed:
             device.write_config()
             logger.info(C_YELLOW(f"{log_prefix}: Config changed and saved"))
+            device.conn.disconnect()
             return { 'status': 'CHANGED', 'device': log_prefix }
         else:
             logger.info(C_GREEN(f"{log_prefix}: No changes needed"))
+            device.conn.disconnect()
             return { 'status': 'UNCHANGED', 'device': log_prefix }
     
     except Exception as e:
