@@ -195,6 +195,5 @@ nb_logservers = netbox._get_single("/api/extras/config-contexts/?name=logservers
 ############################
 results = list(exec_pool(puch_change,lnms_devices))
 
-logger.info()
-for item in sorted(results, key=lambda d: d['status']):
-    logger.info(item)
+sorted_results = sorted(results, key=lambda d: d['status'])
+logger.info('\n'+'\n'.join([str(r) for r in sorted_results]))
