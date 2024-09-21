@@ -165,20 +165,20 @@ def push_change(lnms_device):
             if os.environ.get('DEBUG',False):
                 logger.info(f"{log_prefix}: No manufacturer set or device is not a switch")
             return { 'status': 'IGNORED', 'device': log_prefix }
-        
+    
+        # finish up
+        device.conn.disconnect()
+        if config_changed:
+            device.write_config()
+            logger.info(C_YELLOW(f"{log_prefix}: Config changed and saved"))
+            return { 'status': 'CHANGED', 'device': log_prefix }
+        else:
+            logger.info(C_GREEN(f"{log_prefix}: No changes needed"))
+            return { 'status': 'UNCHANGED', 'device': log_prefix }
+    
     except Exception as e:
         logger.info (C_RED(f"{e}\n\n{log_prefix}: General failure, please contact an engineer to look into the issue, in the mean time check if changes can be done by logging in localy."))
         return { 'status': 'FAILED', 'device': log_prefix }
-    
-    # finish up
-    device.conn.disconnect()
-    if config_changed:
-        device.write_config()
-        logger.info(C_YELLOW(f"{log_prefix}: Config changed and saved"))
-        return { 'status': 'CHANGED', 'device': log_prefix }
-    else:
-        logger.info(C_GREEN(f"{log_prefix}: No changes needed"))
-        return { 'status': 'UNCHANGED', 'device': log_prefix }
 
 librenms = LibreNMS()
 netbox = Netbox()
