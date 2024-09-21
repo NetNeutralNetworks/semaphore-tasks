@@ -24,7 +24,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-MAX_WORKERS = 1#os.environ.get('MAX_WORKERS',multiprocessing.cpu_count()*4)
+MAX_WORKERS = os.environ.get('MAX_WORKERS',multiprocessing.cpu_count()*4)
 logger.info(f"Using {MAX_WORKERS} workers")
 
 def C_RED(text): return f"\33[31m{text}\33[0m"
