@@ -101,7 +101,7 @@ def push_change(lnms_device):
             
         elif device_os == 'arubaos-cx':        
             device = connect(AOS, device_ip, log_prefix)
-            if not device: return
+            if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
             device.conn.establish_connection()
             device.conn.read_until_prompt_or_pattern('Press any key to continue')
@@ -132,7 +132,7 @@ def push_change(lnms_device):
             
         elif device_os == 'fs-switch':            
             device = connect(FS, device_ip, log_prefix)
-            if not device: return
+            if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
             device.conn.establish_connection()
             device.conn.read_until_prompt()
