@@ -48,7 +48,7 @@ def connect(DRIVER, device_ip, log_prefix='unknown'):
         logger.info(C_RED(f"{log_prefix}: Management ip not found or failed to authenticate"))
         return    
 
-def puch_change(lnms_device):
+def push_change(lnms_device):
     config_changed = False
     try:
         #lnms_device = lnms_devices.get(nb_device.get('display',''))
@@ -193,7 +193,7 @@ nb_logservers = netbox._get_single("/api/extras/config-contexts/?name=logservers
 ############################
 # push changes
 ############################
-results = list(exec_pool(puch_change,lnms_devices))
+results = list(exec_pool(push_change,lnms_devices))
 
 sorted_results = sorted(results, key=lambda d: d['status'])
 logger.info('\n'+'\n'.join([str(r) for r in sorted_results]))
