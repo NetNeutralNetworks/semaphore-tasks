@@ -82,7 +82,7 @@ def push_change(lnms_device):
                 # drop removals that are planned for deployment                
                 commands += [line for community in communities for line in remove_lines if community not in line]
             
-            commands += [f"snmp-server community {s}"for s in communities]
+            commands += [f"snmp-server community \"{s}\""for s in communities]
             
             # configure traps
             trap_hosts = [i.get('trap_hosts') for i in snmp_config.get('v2c',{}) if i.get('trap_hosts')]
