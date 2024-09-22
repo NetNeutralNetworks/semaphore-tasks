@@ -62,7 +62,7 @@ def push_change(lnms_device):
         # prep commands
         commands = []
         
-        if device_os == 'procurve':        
+        if device_os == 'procurve' and False:        
             device = connect(PROCURVE, device_ip, log_prefix)
             if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
@@ -111,7 +111,7 @@ def push_change(lnms_device):
                 
                 config_changed = True
             
-        elif device_os == 'arubaos-cx':        
+        elif device_os == 'arubaos-cx' and False:        
             device = connect(AOS, device_ip, log_prefix)
             if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
@@ -156,7 +156,7 @@ def push_change(lnms_device):
                 
                 config_changed = True
             
-        elif device_os == 'fs-switch' and False:            
+        elif device_os == 'fs-switch':            
             device = connect(FS, device_ip, log_prefix)
             if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
@@ -168,13 +168,26 @@ def push_change(lnms_device):
             device_version = device.conn.send_command("show version")
             device_config = device.conn.send_command("show run")
             
+            #conifgure communities
+            communities = [i.get('community') for i in snmp_config.get('v2c',{})]
             if os.environ.get('replace',False):
                 # find all config lines that match "logging <ip>"
-                remove_lines = [f"no {line}" for server in logservers for line in device_config.split('\n') if re.match('^logging server \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', line) != None ]
-                # drop removals that are planned for deployment
-                commands += [line for server in logservers for line in remove_lines if server not in line]
+                regex = re.compile('^snmp-server community \d* \S*')
+                remove_lines = [f"no {regex.match(line).group(0)}" for line in device_config.split('\n') if regex.match(line) != None ]
+                commands += remove_lines
             
-            commands += [f"logging server {s}" for s in logservers]
+            commands += [f"snmp-server community {s}"for s in communities]
+            
+            # configure traps
+            trap_hosts = [i.get('trap_hosts') for i in snmp_config.get('v2c',{}) if i.get('trap_hosts')]
+            if os.environ.get('replace',False):
+                # find all config lines that match "snmp-server host <ip> community ..."
+                regex = re.compile('^snmp-server host \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} traps .*')           
+                remove_lines = [f"no {regex.match(line).group(0)}" for line in device_config.split('\n') if regex.match(line) != None ]
+                commands += remove_lines
+            
+            commands += [f"snmp-server host {trap_host.get('ip','')} {trap_host.get('community','')}" for trap_host in trap_hosts]
+            
             # drop deployments that are allready in the config
             commands = [command for command in commands if command not in device_config]
             
