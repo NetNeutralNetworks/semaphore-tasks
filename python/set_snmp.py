@@ -168,6 +168,9 @@ def push_change(lnms_device):
             device_version = device.conn.send_command("show version")
             device_config = device.conn.send_command("show run")
             
+            if "snmp-server enable secret-dictionary-check" in device_config:
+                commands += ["no snmp-server enable secret-dictionary-check"]
+            
             #conifgure communities
             communities = [i.get('community') for i in snmp_config.get('v2c',{})]
             if os.environ.get('replace',False):
