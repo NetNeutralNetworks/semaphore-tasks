@@ -62,7 +62,7 @@ def push_change(lnms_device):
         # prep commands
         commands = []
         
-        if device_os == 'procurve' and False:        
+        if device_os == 'procurve':        
             device = connect(PROCURVE, device_ip, log_prefix)
             if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
@@ -111,7 +111,7 @@ def push_change(lnms_device):
                 
                 config_changed = True
             
-        elif device_os == 'arubaos-cx' and False:        
+        elif device_os == 'arubaos-cx':        
             device = connect(AOS, device_ip, log_prefix)
             if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
