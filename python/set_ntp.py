@@ -18,13 +18,17 @@ import multiprocessing
 import logging
 
 logger = logging.getLogger('nc-mis')
-logger.setLevel(logging.DEBUG)
+if os.environ.get('DEBUG',False):
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+    
 handler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-MAX_WORKERS = os.environ.get('MAX_WORKERS',multiprocessing.cpu_count()*4)
+MAX_WORKERS = int(os.environ.get('MAX_WORKERS',multiprocessing.cpu_count()*4))
 logger.info(f"Using {MAX_WORKERS} workers")
 
 def C_RED(text): return f"\33[31m{text}\33[0m"
@@ -73,7 +77,10 @@ def push_change(lnms_device):
 
             device_version = device.conn.send_command("show version")
             device_config = device.conn.send_command("show run")
+            output = device.conn.send_command("show ntp status")
             
+            if "Invalid input: ntp" in output:
+                return { 'status': 'SKIPPED', 'device': f"{log_prefix}: ntp not supported"}
             
             # disable sntp
             commands += ['no sntp']
@@ -103,7 +110,7 @@ def push_change(lnms_device):
                 
                 config_changed = True
             
-        elif device_os == 'arubaos-cx' and False:        
+        elif device_os == 'arubaos-cx':        
             device = connect(AOS, device_ip, log_prefix)
             if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
@@ -115,26 +122,17 @@ def push_change(lnms_device):
             device_version = device.conn.send_command("show version")
             device_config = device.conn.send_command("show run")
             
-            #conifgure communities
-            communities = [i.get('community') for i in snmp_config.get('v2c',{})]
             if os.environ.get('replace',False):
-                # find all config lines that match "logging <ip>"
-                remove_lines = [f"no {line}" for line in device_config.split('\n') if re.match('^snmp-server community .*', line) != None ]
-                # drop removals that are planned for deployment                
-                commands += [line for community in communities for line in remove_lines if community not in line]
-            
-            commands += [f"snmp-server community {s}"for s in communities]
-            
-            # configure traps
-            trap_hosts = [i.get('trap_hosts') for i in snmp_config.get('v2c',{}) if i.get('trap_hosts')]
-            if os.environ.get('replace',False):
-                # find all config lines that match "snmp-server host <ip> community ..."
-                regex = re.compile('^snmp-server host \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} community \S*')           
+                # remove lines with sntp
+                regex = re.compile('^ntp server \S*')
                 remove_lines = [f"no {regex.match(line).group(0)}" for line in device_config.split('\n') if regex.match(line) != None ]
+                # 
                 # drop removals that are planned for deployment                
-                commands += [l for l in remove_lines if l not in [line for trap_host in trap_hosts for line in remove_lines if f"snmp-server host {trap_host.get('ip','')} community \"{trap_host.get('community','')}\"" in line]]
+                commands += [l for l in remove_lines if l not in [line for ntpserver in ntpservers for line in remove_lines if ntpserver in line]]
             
-            commands += [f"snmp-server host {trap_host.get('ip','')} community \"{trap_host.get('community','')}\"" for trap_host in trap_hosts]
+            # configure ntp
+            commands += ["ntp enable"]
+            commands += [f"ntp server {server} burst" for server in ntpservers]
             
             # drop deployments that are allready in the config
             commands = [command for command in commands if command not in device_config]
@@ -148,7 +146,7 @@ def push_change(lnms_device):
                 
                 config_changed = True
             
-        elif device_os == 'fs-switch' and False:            
+        elif device_os == 'fs-switch':            
             device = connect(FS, device_ip, log_prefix)
             if not device: return { 'status': 'FAILED', 'device': log_prefix }
             
@@ -159,34 +157,27 @@ def push_change(lnms_device):
 
             device_version = device.conn.send_command("show version")
             device_config = device.conn.send_command("show run")
+
+            # disable sntp
+            if 'sntp' in device_config:
+                commands += ['no sntp enable']
+                commands += [f"no {line}" for line in device_config.split('\n') if re.match('^sntp server .*', line) != None ]
             
-            if "snmp-server enable secret-dictionary-check" in device_config:
-                commands += ["no snmp-server enable secret-dictionary-check"]
-            
-            #conifgure communities
-            communities = [i.get('community') for i in snmp_config.get('v2c',{})]
             if os.environ.get('replace',False):
-                # find all config lines that match "logging <ip>"
-                regex = re.compile('^snmp-server community \d* \S*')
+                # remove lines with sntp
+                regex = re.compile('^ntp server \S*')
                 remove_lines = [f"no {regex.match(line).group(0)}" for line in device_config.split('\n') if regex.match(line) != None ]
-                commands += remove_lines
-            
-            commands += [f"snmp-server community {s}"for s in communities]
-            
-            # configure traps
-            trap_hosts = [i.get('trap_hosts') for i in snmp_config.get('v2c',{}) if i.get('trap_hosts')]
-            if os.environ.get('replace',False):
-                # find all config lines that match "snmp-server host <ip> community ..."
-                regex = re.compile('^snmp-server host \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} traps .*')           
-                remove_lines = [f"no {regex.match(line).group(0)}" for line in device_config.split('\n') if regex.match(line) != None ]
-                commands += remove_lines
-            
-            commands += [f"snmp-server host {trap_host.get('ip','')} {trap_host.get('community','')}" for trap_host in trap_hosts]
+                # 
+                # drop removals that are planned for deployment                
+                commands += [l for l in remove_lines if l not in [line for ntpserver in ntpservers for line in remove_lines if ntpserver in line]]
+
+            # configure ntp
+            commands += [f"ntp server {server}" for server in ntpservers]
             
             # drop deployments that are allready in the config
             commands = [command for command in commands if command not in device_config]
             
-            if commands:           
+            if commands:
                 # send commands to device
                 device.conn.config_mode()
                 for command in commands:
@@ -204,6 +195,7 @@ def push_change(lnms_device):
         if config_changed:
             device.write_config()
             logger.info(C_YELLOW(f"{log_prefix}: Config changed and saved"))
+            logger.debug(C_YELLOW(f"{log_prefix}:\n" + '\n'.join(commands) ))
             device.conn.disconnect()
             return { 'status': 'CHANGED', 'device': log_prefix }
         else:
