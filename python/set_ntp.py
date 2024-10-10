@@ -1,11 +1,13 @@
+import subprocess, sys
+subprocess.run([sys.executable, "-m", "pip", "install", "-r", "python/requirements.txt"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 import yaml
 import argparse
 import os
-import sys
 import re
 from time import sleep
-from nc_mis.helpers.netbox import Netbox
-from nc_mis.helpers.librenms import LibreNMS
+from nc_helpers.netbox import Netbox
+from nc_helpers.librenms import LibreNMS
 
 import ipaddress
 

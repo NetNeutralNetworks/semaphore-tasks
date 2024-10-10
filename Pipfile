@@ -12,6 +12,7 @@ netmiko = "*"
 ttp = "*"
 requests = "*"
 python-dotenv = "*"
+nc-mis = "==0.2.3"
 
 [dev-packages]
 
