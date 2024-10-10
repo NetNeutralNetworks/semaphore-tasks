@@ -1,11 +1,15 @@
+
+import subprocess, sys
+subprocess.run([sys.executable, "-m", "pip", "install", "-r", "python/requirements.txt"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 import yaml
 import argparse
 import os
 import sys
 import re
 from time import sleep
-from nc_mis.helpers.netbox import Netbox
-from nc_mis.helpers.librenms import LibreNMS
+from nc_helpers.netbox import Netbox
+from nc_helpers.librenms import LibreNMS
 
 import ipaddress
 
@@ -24,7 +28,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-MAX_WORKERS = os.environ.get('MAX_WORKERS',multiprocessing.cpu_count()*4)
+MAX_WORKERS = int(os.environ.get('MAX_WORKERS',multiprocessing.cpu_count()*4))
 logger.info(f"Using {MAX_WORKERS} workers")
 
 def C_RED(text): return f"\33[31m{text}\33[0m"
