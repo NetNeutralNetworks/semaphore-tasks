@@ -1,0 +1,12 @@
+system {
+    replace: domain-name {{ dns.domain }};
+    replace: name-server {
+{%- for server in dns.servers %}
+    {%- if 'lea' in device_name or 'spi' in device_name %}
+        {{ server }} routing-instance mgmt_junos;
+    {%- else %}
+        {{ server }};
+    {%- endif %}
+{%- endfor %}
+    }
+}

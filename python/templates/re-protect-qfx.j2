@@ -1,0 +1,379 @@
+policy-options {
+    replace:
+    prefix-list router-ipv4 {
+        apply-path "interfaces <*> unit <*> family inet address <*>";
+    }
+    replace:
+    prefix-list management-hosts {
+{%- for prefix in management_prefixes %}
+        {{ prefix.prefix }};
+{%- endfor %}
+    }
+    replace:
+    prefix-list ntp-servers {
+        apply-path "system ntp server <*>";
+    }
+    replace:
+    prefix-list loopback {
+        apply-path "interfaces lo0 unit 0 family inet address <*>";
+    }
+    replace:
+    prefix-list management-interface {
+        apply-path "interfaces em0 unit 0 family inet address <*>";
+    }
+    replace:
+    prefix-list tacacs-servers {
+        apply-path "system tacplus-server <*>";
+    }
+    replace:
+    prefix-list dns-servers {
+        apply-path "system name-server <*>";
+    }
+    replace:
+    prefix-list bgp-neighbors {
+        apply-path "protocols bgp group <*> neighbor <*>";
+    }
+    replace:
+    prefix-list ospf {
+        224.0.0.5/32;
+        224.0.0.6/32;
+    }
+}
+
+firewall {
+    family inet {
+        replace: filter {{ name }} {
+            term accept-sh-bfd {
+                from {
+                    source-prefix-list {
+                        router-ipv4;
+                    }
+                    destination-prefix-list {
+                        router-ipv4;
+                    }
+                    protocol udp;
+                    source-port 49152-65535;
+                    destination-port 3784-3785;
+                }
+                then {
+                    count accept-sh-bfd;
+                    accept;
+                }
+            }
+            term accept-mh-bfd {
+                from {
+                    source-prefix-list {
+{%- if 'lea' in device_name or 'spi' in device_name %}
+                        bgp-neighbors;
+{%- else %}
+                        loopbacks;
+{%- endif %}
+                    }
+                    protocol udp;
+                    source-port 49152-65535;
+                    destination-port 4784;
+                }
+                then {
+                    count accept-mh-bfd;
+                    accept;
+                }
+            }
+            term accept-ospf {
+                from {
+                    source-prefix-list {
+                        router-ipv4;
+                    }
+                    destination-prefix-list {
+                        router-ipv4;
+                        ospf;
+                    }
+                    protocol ospf;
+                }
+                then {
+                    count accept-ospf;
+                    accept;
+                }
+            }
+            term accept-bgp {
+                from {
+                    source-prefix-list {
+                        bgp-neighbors;
+                    }
+                    protocol tcp;
+                    port bgp;
+                }
+                then {
+                    count accept-bgp;
+                    accept;
+                }
+            }
+{%- if 'lea' in device_name or 'spi' in device_name %}
+            term accept-vxlan {
+                from {
+                    source-prefix-list {
+                        bgp-neighbors;
+                    }
+                    protocol udp;
+                    destination-port 4789;
+                }
+                then {
+                    count accept-vxlan;
+                    accept;
+                }
+            }
+{%- elif 'dsw' in device_name %}
+            term accept-ldp-session {
+                from {
+                    source-prefix-list {
+                        loopbacks;
+                    }
+                    destination-prefix-list {
+                        loopbacks;
+                    }
+                    protocol tcp;
+                    port ldp;
+                }
+                then {
+                    count accept-ldp-session;
+                    accept;
+                }
+            }
+            term accept-ldp-hello {
+                from {
+                    destination-address {
+                        224.0.0.2/32;
+                    }
+                    source-prefix-list {
+                        router-ipv4;
+                    }
+                    protocol udp;
+                    destination-port ldp;
+                }
+                then {
+                    count accept-ldp-hello;
+                    accept;
+                }
+            }
+            term pim {
+                from {
+                    protocol pim;
+                }
+                then {
+                    count accept-pim;
+                    accept;
+                }
+            }
+            term iccp {
+                from {
+                    source-prefix-list {
+                        loopbacks;
+                    }
+                    destination-prefix-list {
+                        loopbacks;
+                    }
+                    protocol tcp;
+                    port 33012;
+                }
+            }
+            term vrrp {
+                from {
+                    destination-address {
+                        224.0.0.18/32;
+                    }
+                    protocol [ vrrp ah ];
+                }
+                then {
+                    count accept-vrrp;
+                    accept;
+                }
+            }
+{%- endif %}
+            term accept-igmp-snooping {
+                from {
+                    protocol igmp;
+                }
+                then {
+                    policer 2m-policer;
+                    count accept-igmp-snooping;
+                    accept;
+                }
+            }
+            term accept-ssh {
+                from {
+                    source-prefix-list {
+                        management-hosts;
+                    }
+                    protocol tcp;
+                    destination-port ssh;
+                }
+                then {
+                    count accept-ssh;
+                    accept;
+                }
+            }
+            term accept-snmp {
+                from {
+                    source-prefix-list {
+                        management-hosts;
+                    }
+                    protocol udp;
+                    destination-port snmp;
+                }
+                then {
+                    policer 2m-policer;
+                    count accept-snmp;
+                    accept;
+                }
+            }
+            term accept-icmp {
+                from {
+                    protocol icmp;
+                }
+                then {
+                    policer 1m-policer;
+                    count accept-icmp;
+                    accept;
+                }
+            }
+            term accept-traceroute-udp {
+                from {
+                    protocol udp;
+                    ttl 1;
+                    destination-port 33435-33450;
+                }
+                then {
+                    policer 1m-policer;
+                    count accept-traceroute-udp;
+                    accept;
+                }
+            }
+            term accept-traceroute-icmp {
+                from {
+                    protocol icmp;
+                    ttl 1;
+                    icmp-type [ echo-request timestamp time-exceeded ];
+                }
+                then {
+                    policer 1m-policer;
+                    count accept-traceroute-icmp;
+                    accept;
+                }
+            }
+            term accept-ntp {
+                from {
+                    source-prefix-list {
+                        ntp-servers;
+                    }
+                    destination-prefix-list {
+                        management-interface;
+                    }
+                    protocol udp;
+                    source-port ntp;
+                }
+                then {
+                    policer 1m-policer;
+                    count accept-ntp;
+                    accept;
+                }
+            }
+            term accept-ntp-local {
+                from {
+                    source-prefix-list {
+                        loopback;
+                    }
+                    destination-prefix-list {
+                        loopback;
+                    }
+                    protocol udp;
+                    port ntp;
+                }
+                then {
+                    policer 1m-policer;
+                    count accept-ntp-local;
+                    accept;
+                }
+            }
+            term accept-tacacs {
+                from {
+                    source-prefix-list {
+                        tacacs-servers;
+                    }
+                    protocol [ tcp udp ];
+                    source-port 49;
+                    tcp-established;
+                }
+                then {
+                    policer 1m-policer;
+                    count accept-tacacs;
+                    accept;
+                }
+            }
+            term accept-netconf {
+                from {
+                    source-prefix-list {
+                        management-hosts;
+                    }
+                    protocol tcp;
+                    destination-port 830;
+                }
+                then {
+                    count accept-netconf;
+                    accept;
+                }
+            }
+            term accept-dns {
+                from {
+                    source-prefix-list {
+                        dns-servers;
+                    }
+                    destination-prefix-list {
+                        router-ipv4;
+                    }
+                    protocol [ udp tcp ];
+                    source-port 53;
+                }
+                then {
+                    policer 1m-policer;
+                    count accept-dns;
+                    accept;
+                }
+            }
+            term discard-all {
+                then {
+                    log;
+                    syslog;
+                    count discard-all;
+                    discard;
+                }
+            }
+        }
+    }
+    replace:
+    policer 1m-policer {
+        if-exceeding {
+            bandwidth-limit 1m;
+            burst-size-limit 15k;
+        }
+        then discard;
+    }
+    replace:
+    policer 2m-policer {
+        if-exceeding {
+            bandwidth-limit 2m;
+            burst-size-limit 625k;
+        }
+        then discard;
+    }
+}
+interfaces {
+    lo0 {
+        unit 0 {
+            family inet {
+                replace:
+                filter {
+                    input {{ name }};
+                }
+            }
+        }
+    }
+}

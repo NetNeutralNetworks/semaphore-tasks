@@ -1,0 +1,239 @@
+policy-options {
+    replace:
+    prefix-list router-ipv4 {
+        apply-path "interfaces <*> unit <*> family inet address <*>";
+    }
+    replace:
+    prefix-list management-hosts {
+{%- for prefix in management_prefixes %}
+        {{ prefix.prefix }};
+{%- endfor %}
+    }
+    replace:
+    prefix-list ntp-servers {
+        apply-path "system ntp server <*>";
+    }
+    replace:
+    prefix-list loopback {
+        apply-path "interfaces lo0 unit 0 family inet address <*>";
+    }
+    replace:
+    prefix-list management-interface {
+        apply-path "interfaces vlan unit 2099 family inet address <*>";
+    }
+    replace:
+    prefix-list tacacs-servers {
+        apply-path "system tacplus-server <*>";
+    }
+    replace:
+    prefix-list radius-servers {
+        apply-path "access radius-server <*>";
+    }
+    replace:
+    prefix-list dns-servers {
+        apply-path "system name-server <*>";
+    }
+}
+firewall {
+    family inet {
+        delete: filter VTY-VTY;
+    }
+}
+firewall {
+    family inet {
+        replace:
+        filter {{ name }} {
+            replace:
+            term accept-igmp-snooping {
+                from {
+                    protocol igmp;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-ssh {
+                from {
+                    source-prefix-list {
+                        management-hosts;
+                    }
+                    protocol tcp;
+                    destination-port ssh;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-snmp {
+                from {
+                    source-prefix-list {
+                        management-hosts;
+                    }
+                    protocol udp;
+                    destination-port snmp;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-icmp {
+                from {
+                    protocol icmp;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-traceroute-udp {
+                from {
+                    protocol udp;
+                    destination-port 33435-33450;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-traceroute-icmp {
+                from {
+                    protocol icmp;
+                    icmp-type [ echo-request timestamp time-exceeded ];
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-ntp {
+                from {
+                    source-prefix-list {
+                        ntp-servers;
+                    }
+                    destination-prefix-list {
+                        management-interface;
+                    }
+                    protocol udp;
+                    source-port ntp;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-ntp-local-in {
+                from {
+                    source-prefix-list {
+                        management-interface;
+                        loopback;
+                    }
+                    protocol udp;
+                    source-port ntp;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-ntp-local-out {
+                from {
+                    source-prefix-list {
+                        management-interface;
+                        loopback;
+                    }
+                    protocol udp;
+                    destination-port ntp;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-tacacs {
+                from {
+                    source-prefix-list {
+                        tacacs-servers;
+                    }
+                    protocol [ tcp udp ];
+                    source-port 49;
+                    tcp-established;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-radius {
+                from {
+                    source-prefix-list {
+                        radius-servers;
+                    }
+                    protocol udp;
+                    source-port [ 1812 1813 ];
+                }
+                then accept;
+            }
+            replace:
+            term accept-radius-coa {
+                from {
+                    source-prefix-list {
+                        radius-servers;
+                    }
+                    protocol udp;
+                    destination-port 3799;
+                }
+                then accept;
+            }
+            replace:
+            term accept-netconf {
+                from {
+                    source-prefix-list {
+                        management-hosts;
+                    }
+                    protocol tcp;
+                    destination-port 830;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term accept-dns {
+                from {
+                    source-prefix-list {
+                        dns-servers;
+                    }
+                    destination-prefix-list {
+                        router-ipv4;
+                    }
+                    protocol [ udp tcp ];
+                    source-port 53;
+                }
+                then {
+                    accept;
+                }
+            }
+            replace:
+            term discard-all {
+                then {
+                    discard;
+                }
+            }
+        }
+    }
+}
+interfaces {
+    lo0 {
+        unit 0 {
+            family inet {
+                replace:
+                filter {
+                    input {{ name }};
+                }
+            }
+        }
+    }
+}
