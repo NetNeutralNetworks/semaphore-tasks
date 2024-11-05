@@ -240,9 +240,16 @@ def push_change(
                 device_template = J2_ENV.get_template("re-protect-qfx.j2")
             elif any(x in lnms_device["hardware"].lower() for x in ["ex4300"]):
                 device_template = J2_ENV.get_template("re-protect-ex4300.j2")
-            elif any(x in lnms_device["hardware"].lower() for x in ["ex"]):
+            elif any(
+                x in lnms_device["hardware"].lower()
+                for x in ["ex", "juniper virtual chassis switch"]
+            ):
                 device_template = J2_ENV.get_template("re-protect-ex.j2")
             elif lnms_device["version"].lower().startswith("15."):
+                device_template = J2_ENV.get_template("re-protect-ex.j2")
+            elif lnms_device["version"].lower().startswith("12."):
+                device_template = J2_ENV.get_template("re-protect-ex.j2")
+            elif device_name.lower().startswith("kpleswok1"):
                 device_template = J2_ENV.get_template("re-protect-ex.j2")
             else:
                 logger.warning("Device %s template not found.", device_name)
@@ -288,8 +295,6 @@ def push_change(
                 if not diff:
                     device.rollback()
                     logger.info(C_YELLOW(f"{log_prefix}: Config changed and saved"))
-                    with DEVICE_DONE_LIST.open("+a", encoding="utf-8") as fh:
-                        fh.write(f"{device_name}\n")
                     return {"status": "CHANGED", "device": log_prefix}
 
                 if diff:
@@ -298,6 +303,8 @@ def push_change(
 
                 if dryrun is False and diff:
                     commit(device)
+                    with DEVICE_DONE_LIST.open("+a", encoding="utf-8") as fh:
+                        fh.write(f"{device_name}\n")
 
         else:
             if os.environ.get("DEBUG", False):
@@ -309,8 +316,6 @@ def push_change(
         # finish up
         if config_changed:
             logger.info(C_YELLOW(f"{log_prefix}: Config changed and saved"))
-            with DEVICE_DONE_LIST.open("+a", encoding="utf-8") as fh:
-                fh.write(f"{device_name}\n")
             return {"status": "CHANGED", "device": log_prefix}
 
         else:

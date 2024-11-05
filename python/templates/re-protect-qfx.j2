@@ -1,5 +1,9 @@
 policy-options {
     replace:
+    prefix-list interconnects {
+        172.16.12.0/24;
+    }
+    replace:
     prefix-list router-ipv4 {
         apply-path "interfaces <*> unit <*> family inet address <*>";
     }
@@ -46,10 +50,26 @@ firewall {
             term accept-sh-bfd {
                 from {
                     source-prefix-list {
+{%- if 'lea' in device_name or 'spi' in device_name %}
+                        loopbacks;
+                        interconnects;
+{%- elif 'bsw' in device_name %}
+                        loopbacks;
+                        core-links;
+{%- else %}
                         router-ipv4;
+{%- endif %}
                     }
                     destination-prefix-list {
+{%- if 'lea' in device_name or 'spi' in device_name %}
+                        loopbacks;
+                        interconnects;
+{%- elif 'bsw' in device_name %}
+                        loopbacks;
+                        core-links;
+{%- else %}
                         router-ipv4;
+{%- endif %}
                     }
                     protocol udp;
                     source-port 49152-65535;
@@ -81,10 +101,26 @@ firewall {
             term accept-ospf {
                 from {
                     source-prefix-list {
+{%- if 'lea' in device_name or 'spi' in device_name %}
+                        loopbacks;
+                        interconnects;
+{%- elif 'bsw' in device_name %}
+                        loopbacks;
+                        core-links;
+{%- else %}
                         router-ipv4;
+{%- endif %}
                     }
                     destination-prefix-list {
+{%- if 'lea' in device_name or 'spi' in device_name %}
+                        loopbacks;
+                        interconnects;
+{%- elif 'bsw' in device_name %}
+                        loopbacks;
+                        core-links;
+{%- else %}
                         router-ipv4;
+{%- endif %}
                         ospf;
                     }
                     protocol ospf;
@@ -121,7 +157,7 @@ firewall {
                     accept;
                 }
             }
-{%- elif 'dsw' in device_name %}
+{%- elif 'dsw' in device_name or 'bsw' in device_name %}
             term accept-ldp-session {
                 from {
                     source-prefix-list {
@@ -144,7 +180,15 @@ firewall {
                         224.0.0.2/32;
                     }
                     source-prefix-list {
+{%- if 'lea' in device_name or 'spi' in device_name %}
+                        loopbacks;
+                        interconnects;
+{%- elif 'bsw' in device_name %}
+                        loopbacks;
+                        core-links;
+{%- else %}
                         router-ipv4;
+{%- endif %}
                     }
                     protocol udp;
                     destination-port ldp;
@@ -327,7 +371,15 @@ firewall {
                         dns-servers;
                     }
                     destination-prefix-list {
+{%- if 'lea' in device_name or 'spi' in device_name %}
+                        loopbacks;
+                        interconnects;
+{%- elif 'bsw' in device_name %}
+                        loopbacks;
+                        core-links;
+{%- else %}
                         router-ipv4;
+{%- endif %}
                     }
                     protocol [ udp tcp ];
                     source-port 53;
