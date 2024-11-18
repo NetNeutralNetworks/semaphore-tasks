@@ -23,7 +23,11 @@ policy-options {
     }
     replace:
     prefix-list management-interface {
+{%- if 'lea' in device_name or 'spi' in device_name %}
         apply-path "interfaces em0 unit 0 family inet address <*>";
+{%- else %}
+        apply-path "interfaces fxp0 unit 0 family inet address <*>";
+{%- endif %}
     }
     replace:
     prefix-list tacacs-servers {
@@ -392,9 +396,6 @@ firewall {
             }
             term discard-all {
                 then {
-                    log;
-                    syslog;
-                    count discard-all;
                     discard;
                 }
             }

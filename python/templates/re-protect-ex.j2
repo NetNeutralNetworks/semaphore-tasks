@@ -19,7 +19,11 @@ policy-options {
     }
     replace:
     prefix-list management-interface {
+{%- if os_version.startswith('15') %}
         apply-path "interfaces vlan unit 2099 family inet address <*>";
+{%- else %}
+        apply-path "interfaces irb unit 2099 family inet address <*>";
+{%- endif %}
     }
     replace:
     prefix-list tacacs-servers {

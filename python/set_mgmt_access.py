@@ -262,6 +262,7 @@ def push_change(
                 device_template.render(
                     {
                         "device_name": device_name,
+                        "os_version": lnms_device["version"],
                         "name": "re-protect",
                         "management_prefixes": management_prefixes,
                     }
