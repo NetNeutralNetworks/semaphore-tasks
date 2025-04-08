@@ -221,7 +221,7 @@ def push_change(
         # device_manufacturer = nb_device.get('device_type').get('manufacturer').get('slug')
         # device_role = nb_device.get('device_role').get('slug')
         device_os = lnms_device.get("os", "")
-        device_ip = f"{os.environ.get('V6_PREFIX','')}{lnms_device.get('ip')}"
+        device_ip = f"{os.environ.get('V6_PREFIX', '')}{lnms_device.get('ip')}"
         device_name = lnms_device.get("sysName", "")
         # devcie_name = nb_device.get('display')
         # logservers = nb_mgmt_prefixes #nb_device.get('config_context').get('logservers')
@@ -333,7 +333,8 @@ def push_change(
 
 
 def main() -> None:
-    host_filter = "dc02-spine01"
+    dryrun = False
+    host_filter = "bsw"
 
     librenms = LibreNMS()
     netbox = Netbox()
