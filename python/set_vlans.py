@@ -1,5 +1,5 @@
 
-import subprocess, sys
+import subprocess, sys, traceback
 subprocess.run([sys.executable, "-m", "pip", "install", "-r", "python/requirements.txt"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 import yaml
@@ -157,7 +157,7 @@ def push_change(lnms_device):
             return { 'status': 'UNCHANGED', 'device': log_prefix }
         
     except Exception as e:
-        logger.info (C_RED(f"{e}\n\n{log_prefix}: General failure, please contact an engineer to look into the issue, in the mean time check if changes can be done by logging in localy."))
+        logger.info (C_RED(f"{e}\n\n{log_prefix}: General failure, please contact an engineer to look into the issue, in the mean time check if changes can be done by logging in localy.\n {traceback.format_exc()}"))
         return { 'status': 'FAILED', 'device': log_prefix }
 
 librenms = LibreNMS()
