@@ -19,6 +19,7 @@ from nc_mis.drivers.fs.fs import FS
 
 import concurrent.futures
 import multiprocessing
+from functools import partial
 import logging
 
 logger = logging.getLogger('nc-mis')
@@ -158,7 +159,7 @@ def push_change(lnms_device, dry_run = True):
         # finish up 
         if commands:           
             # send commands to device
-            if not dry_run:
+            if not os.environ.get('DRY_RUN',True):
                 device.conn.config_mode()
                 for command in commands:
                     device.conn.send_command(command)
@@ -191,7 +192,7 @@ netbox_sites = {}
 ############################
 # push changes
 ############################
-results = list(exec_pool(push_change,lnms_devices, False))
+results = list(exec_pool(push_change,lnms_devices))
 
 logger.info(str(netbox_sites))
 
