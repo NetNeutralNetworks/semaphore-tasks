@@ -60,7 +60,8 @@ def push_change(lnms_device):
         device_name = lnms_device.get('sysName')
         log_prefix = f"{device_name}, {device_ip}, {device_os}"
 
-        netbox_device_id = netbox_devices_map.get(lnms_device.get('sysName'))['id']
+        netbox_device = netbox_devices_map.get(lnms_device.get('sysName'),{})
+        netbox_device_id = netbox_device.get('id')
         if not netbox_device_id:
             if os.environ.get('DEBUG',False):
                 logger.info(f"{log_prefix}: Cannot find device in netbox")
