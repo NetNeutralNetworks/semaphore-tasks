@@ -58,12 +58,17 @@ def push_change(lnms_device):
         device_os = lnms_device.get('os')
         device_ip = f"{os.environ.get('V6_PREFIX','')}{lnms_device.get('ip')}"
         device_name = lnms_device.get('sysName')
+        log_prefix = f"{device_name}, {device_ip}, {device_os}"
 
-        netbox_device_id = netbox_devices_map[lnms_device.get('sysName')]['id']
+        netbox_device_id = netbox_devices_map.get(lnms_device.get('sysName'))['id']
+        if not netbox_device_id:
+            if os.environ.get('DEBUG',False):
+                logger.info(f"{log_prefix}: Cannot find device in netbox")
+            return { 'status': 'IGNORED', 'device': log_prefix }
         config_context = netbox.get_device(netbox_device_id)['config_context']
         desired_vlan_config = config_context.get('vlans', {})
         
-        log_prefix = f"{device_name}, {device_ip}, {device_os}"
+        
         
         # prep commands
         commands = []
