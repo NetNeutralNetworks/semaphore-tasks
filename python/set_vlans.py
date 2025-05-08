@@ -52,7 +52,7 @@ def connect(DRIVER, device_ip, log_prefix='unknown'):
         logger.info(C_RED(f"{log_prefix}: Management ip not found or failed to authenticate"))
         return    
 
-def push_change(lnms_device):
+def push_change(lnms_device, dry_run = True):
     config_changed = False
     try:
         device_os = lnms_device.get('os')
@@ -158,13 +158,12 @@ def push_change(lnms_device):
         # finish up 
         if commands:           
             # send commands to device
-            # device.conn.config_mode()
-            # for command in commands:
-            #     device.conn.send_command(command)
-            # device.conn.exit_config_mode()
-            config_changed = True       
-        if config_changed:
-            # device.write_config()
+            if not dry_run:
+                device.conn.config_mode()
+                for command in commands:
+                    device.conn.send_command(command)
+                device.conn.send_command('write mem')
+                device.conn.exit_config_mode()
             logger.info(C_YELLOW(f"{log_prefix}: Config changed: {commands}"))
             device.conn.disconnect()
             return { 'status': 'CHANGED', 'device': log_prefix }
@@ -192,7 +191,7 @@ netbox_sites = {}
 ############################
 # push changes
 ############################
-results = list(exec_pool(push_change,lnms_devices))
+results = list(exec_pool(push_change,lnms_devices, False))
 
 logger.info(str(netbox_sites))
 
