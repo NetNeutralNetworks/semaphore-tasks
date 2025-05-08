@@ -159,7 +159,7 @@ def push_change(lnms_device, dry_run = True):
         # finish up 
         if commands:           
             # send commands to device
-            if not os.environ.get('DRY_RUN',True):
+            if not os.environ.get('DRY_RUN',True) != 'false':
                 device.conn.config_mode()
                 for command in commands:
                     device.conn.send_command(command)
