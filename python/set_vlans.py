@@ -67,11 +67,7 @@ def push_change(lnms_device):
                 logger.info(f"{log_prefix}: Cannot find device in netbox")
             return { 'status': 'IGNORED', 'device': log_prefix }
         config_context = netbox._get_single(f"/api/dcim/devices/{netbox_device_id}")['config_context']
-        desired_vlan_config = config_context.get('vlans', {})
-
-        vlans = netbox_sites.get(netbox_device.get('site', {}).get('name'), default=set())
-
-        
+        desired_vlan_config = config_context.get('vlans', {})      
         
         
         # prep commands
