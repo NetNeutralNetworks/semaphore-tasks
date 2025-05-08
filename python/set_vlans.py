@@ -68,6 +68,9 @@ def push_change(lnms_device):
             return { 'status': 'IGNORED', 'device': log_prefix }
         config_context = netbox._get_single(f"/api/dcim/devices/{netbox_device_id}")['config_context']
         desired_vlan_config = config_context.get('vlans', {})
+
+        vlans = netbox_sites.get(netbox_device.get('site', {}).get('name'), default=set())
+
         
         
         
@@ -150,6 +153,10 @@ def push_change(lnms_device):
                 logger.info(f"{log_prefix}: No manufacturer set or device is not a switch")
             return { 'status': 'IGNORED', 'device': log_prefix }
         
+        site_vlans = netbox_sites.get(netbox_device.get('site', {}).get('name'), default=set())
+        site_vlans.update(configured_vlans)
+        netbox_sites[netbox_device.get('site', {}).get('name')] = site_vlans
+        
         # finish up 
         if commands:           
             # send commands to device
@@ -182,11 +189,15 @@ netbox_devices = netbox.get_all_devices()
 lnms_devices_map = {d['sysName'].split('.')[0]:d for d in lnms_devices}
 netbox_devices_map = {d['name']:d for d in netbox_devices}
 
+netbox_sites = {}
 
 ############################
 # push changes
 ############################
 results = list(exec_pool(push_change,lnms_devices))
+
+logger.info(str(netbox_sites))
+
 
 sorted_results = sorted(results, key=lambda d: d['status'])
 logger.info('\n'+'\n'.join([str(r) for r in sorted_results]))
