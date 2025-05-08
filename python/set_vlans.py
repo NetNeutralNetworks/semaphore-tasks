@@ -65,7 +65,8 @@ def push_change(lnms_device):
             if os.environ.get('DEBUG',False):
                 logger.info(f"{log_prefix}: Cannot find device in netbox")
             return { 'status': 'IGNORED', 'device': log_prefix }
-        config_context = netbox.get_device(netbox_device_id)['config_context']
+        logger.info(f"{log_prefix}: Getting context from device: {netbox_device_id}")
+        config_context = netbox._get_single(f"/api/dcim/devices/{netbox_device_id}")['config_context']
         logger.info(f"{log_prefix}: Got context: {config_context}")
         desired_vlan_config = config_context.get('vlans', {})
         
