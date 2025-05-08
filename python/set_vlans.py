@@ -162,7 +162,7 @@ netbox_devices = netbox.get_all_devices()
 # filter only devices that are up 
 #lnms_devices = [d for d in lnms_devices if d.get('status') == 1]
 lnms_devices_map = {d['sysName'].split('.')[0]:d for d in lnms_devices}
-netbox_devices_map = {d['name'].split('.')[0]:d for d in netbox_devices}
+netbox_devices_map = {d['name']:d for d in netbox_devices}
 
 
 ############################
