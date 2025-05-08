@@ -65,9 +65,7 @@ def push_change(lnms_device):
             if os.environ.get('DEBUG',False):
                 logger.info(f"{log_prefix}: Cannot find device in netbox")
             return { 'status': 'IGNORED', 'device': log_prefix }
-        logger.info(f"{log_prefix}: Getting context from device: {netbox_device_id}")
         config_context = netbox._get_single(f"/api/dcim/devices/{netbox_device_id}")['config_context']
-        logger.info(f"{log_prefix}: Got context: {config_context}")
         desired_vlan_config = config_context.get('vlans', {})
         
         
@@ -87,9 +85,13 @@ def push_change(lnms_device):
             device_version = device.conn.send_command("show version")
             device_config = device.conn.send_command("show run")
             device_openconfig = device.parse_to_openconfig(config=device_config)
+
+            configured_vlans = [x.get('vlan-id') for x in device_openconfig.get('vlans', [])]
             
             for vlan in desired_vlan_config:
-                #:TODO add check if the vlan already exists
+                if vlan['vlan-id'] in configured_vlans:
+                    # Already exists
+                    continue
                 commands += [f"""vlan {vlan['vlan-id']}"""]
                 commands += [f"""name {vlan.get('config', {}).get('name', '')}"""]
                 commands += [f"""exit"""]
@@ -106,9 +108,14 @@ def push_change(lnms_device):
 
             device_version = device.conn.send_command("show version")
             device_config = device.conn.send_command("show run")
+            device_openconfig = device.parse_to_openconfig(config=device_config)
+
+            configured_vlans = [x.get('vlan-id') for x in device_openconfig.get('vlans', [])]
             
             for vlan in desired_vlan_config:
-                #:TODO add check if the vlan already exists
+                if vlan['vlan-id'] in configured_vlans:
+                    # Already exists
+                    continue
                 commands += [f"""vlan {vlan['vlan-id']}"""]
                 commands += [f"""name {vlan.get('config', {}).get('name', '')}"""]
                 commands += [f"""exit"""]
@@ -124,13 +131,17 @@ def push_change(lnms_device):
 
             device_version = device.conn.send_command("show version")
             device_config = device.conn.send_command("show run")
+            device_openconfig = device.parse_to_openconfig(config=device_config)
+
+            configured_vlans = [x.get('vlan-id') for x in device_openconfig.get('vlans', [])]
             
             for vlan in desired_vlan_config:
-                #:TODO add check if the vlan already exists
+                if vlan['vlan-id'] in configured_vlans:
+                    # Already exists
+                    continue
                 commands += [f"""vlan {vlan['vlan-id']}"""]
                 commands += [f"""name {vlan.get('config', {}).get('name', '')}"""]
                 commands += [f"""exit"""]
-            
             
             
         else:
@@ -148,8 +159,7 @@ def push_change(lnms_device):
             config_changed = True       
         if config_changed:
             # device.write_config()
-            logger.info(C_YELLOW(f"{log_prefix}: Config changed and saved"))
-            logger.info(C_YELLOW(f"{log_prefix}: {commands}"))
+            logger.info(C_YELLOW(f"{log_prefix}: Config changed: {commands}"))
             device.conn.disconnect()
             return { 'status': 'CHANGED', 'device': log_prefix }
         else:
