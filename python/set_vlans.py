@@ -153,7 +153,9 @@ def push_change(lnms_device):
                 logger.info(f"{log_prefix}: No manufacturer set or device is not a switch")
             return { 'status': 'IGNORED', 'device': log_prefix }
         
-        site_vlans = netbox_sites.get(netbox_device.get('site', {}).get('name'), default=set())
+        site_vlans = netbox_sites.get(netbox_device.get('site', {}).get('name'))
+        if not site_vlans:
+            site_vlans = set()
         site_vlans.update(configured_vlans)
         netbox_sites[netbox_device.get('site', {}).get('name')] = site_vlans
         
