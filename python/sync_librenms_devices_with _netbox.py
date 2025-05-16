@@ -29,6 +29,9 @@ lnms_adapter.load()
 netbox_adapter = NetboxDeviceAdapter(netbox)
 netbox_adapter.load()
 
+logger.info(netbox.get_all_devices())
+logger.info(librenms.get_all_devices())
+
 diff = lnms_adapter.diff_to(netbox_adapter)
 
-logging.info(diff.str())
+logger.info(diff.str())
