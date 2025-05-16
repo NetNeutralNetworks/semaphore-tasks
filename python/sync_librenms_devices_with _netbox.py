@@ -25,8 +25,10 @@ librenms = LibreNMS()
 # f"https://{os.environ.get('NETBOX_HOST','')}/api/dcim/devices/?device_role=switch&manufacturer=hpe"
 #
 lnms_adapter = LibreNMSDeviceAdapter(librenms)
+lnms_adapter.load()
 netbox_adapter = NetboxDeviceAdapter(netbox)
+netbox_adapter.load()
 
 diff = lnms_adapter.diff_to(netbox_adapter)
 
-logging.info(diff)
+logging.info(diff.str())
