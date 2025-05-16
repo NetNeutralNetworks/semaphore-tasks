@@ -4,7 +4,7 @@ import os, sys
 import logging
 from nc_helpers.netbox import Netbox
 from nc_helpers.librenms import LibreNMS
-from nc_helpers.diffsync_definitions.adapters import LibreNMSDeviceAdapter,NetboxDeviceAdapter
+from nc_helpers.diffsync_definition.adapters import LibreNMSDeviceAdapter,NetboxDeviceAdapter
 
 
 logger = logging.getLogger('nc-mis')
