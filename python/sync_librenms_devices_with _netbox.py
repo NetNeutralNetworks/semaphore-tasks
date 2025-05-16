@@ -1,10 +1,18 @@
 import yaml
 import argparse
-import os
-from nc_mis.helpers.netbox import Netbox
-from nc_mis.helpers.librenms import LibreNMS
-import ipaddress
+import os, sys
+import logging
+from nc_helpers.netbox import Netbox
+from nc_helpers.librenms import LibreNMS
+from nc_helpers.diffsync_definitions.adapters import LibreNMSDeviceAdapter,NetboxDeviceAdapter
 
+
+logger = logging.getLogger('nc-mis')
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 # Expected environmental variables: 
 # NETBOX_HOST
 # NETBOX_TOKEN
@@ -16,9 +24,9 @@ librenms = LibreNMS()
 # get devices from netbox
 # f"https://{os.environ.get('NETBOX_HOST','')}/api/dcim/devices/?device_role=switch&manufacturer=hpe"
 #
-lmns_devices = librenms.get_all_devices()
-nb_devices = netbox.get_all_devices()
+lnms_adapter = LibreNMSDeviceAdapter(librenms)
+netbox_adapter = NetboxDeviceAdapter(netbox)
 
+diff = lnms_adapter.diff_to(netbox_adapter)
 
-
-pass
+logging.info(diff)
